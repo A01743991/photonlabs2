@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071b3b">
+  <meta name="description" content="Photon Labs: soluciones de energía solar con ingeniería, análisis y respaldo técnico. Muy pronto iniciamos operaciones en México.">
+  <title>Photon Labs | Muy pronto iniciamos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#071b3b;--navy2:#0b2b55;--gold:#ffb51b;--green:#15965b;--paper:#f4f7fb;--ink:#10233f;--muted:#61718a}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"DM Sans",sans-serif}
+    .page{min-height:100vh;overflow:hidden;position:relative;background:
+      radial-gradient(ellipse at 82% 35%,rgba(255,181,27,.12),transparent 30%),
+      radial-gradient(ellipse at 12% 82%,rgba(21,150,91,.08),transparent 26%),var(--paper)}
+    .topline{height:5px;background:linear-gradient(90deg,var(--green) 0 28%,var(--gold) 28% 66%,var(--navy) 66%)}
+    header{width:min(1160px,calc(100% - 48px));margin:auto;height:100px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--navy)}
+    .brand-mark{width:42px;height:42px;border-radius:13px;background:var(--navy);display:grid;place-items:center;box-shadow:0 8px 20px #071b3b22}
+    .brand-mark svg{width:27px;height:27px}
+    .brand-name{font:800 19px "Manrope",sans-serif;letter-spacing:2.5px}
+    .brand-name span{display:block;color:var(--muted);font:600 9px "DM Sans",sans-serif;letter-spacing:3.2px;margin-top:1px}
+    .status{display:flex;align-items:center;gap:9px;color:#53647c;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+    .pulse{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 0 5px #15965b18}
+    main{width:min(1160px,calc(100% - 48px));margin:0 auto;min-height:calc(100vh - 180px);display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:36px;padding:40px 0 65px;position:relative;z-index:1}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--green);font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:24px}
+    .eyebrow:before{content:"";width:28px;height:2px;background:var(--green)}
+    h1{font:800 clamp(48px,6.5vw,82px)/.99 "Manrope",sans-serif;letter-spacing:-4.5px;color:var(--navy);margin:0;max-width:680px}
+    h1 .soon{display:block;color:var(--gold);text-shadow:0 7px 22px #ffb51b22}
+    .lead{font-size:17px;line-height:1.8;color:#52647d;max-width:550px;margin:28px 0 30px}
+    .lead strong{color:var(--navy);font-weight:700}
+    .actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .cta{display:inline-flex;align-items:center;gap:12px;padding:15px 21px;border-radius:9px;background:var(--navy);color:#fff;text-decoration:none;font-size:13px;font-weight:700;box-shadow:0 12px 28px #071b3b24;transition:transform .2s,background .2s}
+    .cta:hover{transform:translateY(-3px);background:var(--navy2)}
+    .cta svg{width:16px;height:16px}
+    .note{font-size:12px;color:#7b899d}
+    .visual{position:relative;min-height:480px;display:grid;place-items:center}
+    .orbit{position:absolute;width:min(440px,90%);aspect-ratio:1;border:1px solid #d8e1eb;border-radius:50%;animation:rotate 48s linear infinite}
+    .orbit:before,.orbit:after{content:"";position:absolute;border:1px dashed #d8e1eb;border-radius:50%;inset:35px}
+    .orbit:after{inset:76px;border-style:solid;opacity:.6}
+    .sun{position:absolute;width:112px;height:112px;border-radius:50%;right:8%;top:9%;background:linear-gradient(145deg,#ffd66c,var(--gold));box-shadow:0 0 0 15px #ffb51b18,0 0 70px #ffb51b44}
+    .sun:before{content:"";position:absolute;inset:-20px;border:1px solid #ffb51b66;border-radius:50%}
+    .panel-art{position:relative;width:min(440px,100%);filter:drop-shadow(0 26px 35px #071b3b24);transform:rotate(-7deg);z-index:1}
+    .floating{position:absolute;z-index:2;background:#fff;border:1px solid #e4eaf1;border-radius:13px;padding:13px 16px;box-shadow:0 14px 35px #071b3b12}
+    .floating small{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#8190a4;font-weight:800;margin-bottom:5px}
+    .floating b{font:800 16px "Manrope",sans-serif;color:var(--navy)}
+    .float-a{left:0;top:22%}.float-b{right:-2%;bottom:18%}
+    .float-b b{color:var(--green)}
+    .features{display:flex;gap:25px;flex-wrap:wrap;margin-top:45px;padding-top:23px;border-top:1px solid #dfe6ee}
+    .feature{display:flex;align-items:center;gap:9px;color:#64748b;font-size:12px;font-weight:600}
+    .feature i{width:27px;height:27px;border-radius:8px;background:#fff;display:grid;place-items:center;color:var(--green);font-style:normal}
+    footer{width:min(1160px,calc(100% - 48px));margin:auto;border-top:1px solid #dfe6ee;min-height:76px;display:flex;justify-content:space-between;align-items:center;gap:20px;color:#8491a3;font-size:11px;position:relative;z-index:2}
+    .footer-left{display:flex;align-items:center;gap:10px}
+    .footer-left strong{color:#53647c}
+    .student-mark{display:flex;align-items:center;gap:9px}
+    .student-mark img{width:45px;height:30px;object-fit:cover;object-position:center 68%;border-radius:5px;border:1px solid #dce3eb}
+    .student-mark span{font-size:10px;color:#7c899b}
+    @keyframes rotate{to{transform:rotate(360deg)}}
+    @media(max-width:850px){main{grid-template-columns:1fr;padding-top:55px;gap:10px}.visual{min-height:390px;grid-row:2}.panel-art{width:min(390px,82%)}.orbit{width:360px}.sun{right:13%;top:7%;width:90px;height:90px}.float-a{left:5%}.float-b{right:3%}h1{font-size:clamp(48px,10vw,72px)}}
+    @media(max-width:560px){header{height:78px}.status{font-size:9px;letter-spacing:.8px}.brand-name{font-size:16px}main{width:calc(100% - 36px);padding-top:44px}.eyebrow{font-size:9px;margin-bottom:18px}h1{letter-spacing:-2.8px}.lead{font-size:15px;line-height:1.7}.visual{min-height:330px}.orbit{width:290px}.sun{width:68px;height:68px}.floating{padding:10px 12px}.floating b{font-size:13px}.float-a{left:0;top:17%}.float-b{right:0;bottom:12%}.features{gap:13px;margin-top:30px}footer{width:calc(100% - 36px);padding:17px 0;align-items:flex-start;flex-direction:column}.student-mark img{width:40px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="topline"></div>
+  <header>
+    <a class="brand" href="#" aria-label="Photon Labs inicio">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="9" r="4.2" fill="#FFB51B"/><path d="M4 18.5 26.5 16 29 27H7L4 18.5Z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/><path d="m10 18 2 9m5-9 1 9m5-10 1 10M6 22h21" stroke="#fff" stroke-width="1.2"/><path d="M16 1v2M5 7l2 1M27 7l-2 1" stroke="#15965B" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="brand-name">PHOTON LABS<span>ENERGÍA · INGENIERÍA · FUTURO</span></div>
+    </a>
+    <div class="status"><span class="pulse"></span> Próximamente</div>
+  </header>
+
+  <main>
+    <section class="copy">
+      <div class="eyebrow">Una nueva energía está por comenzar</div>
+      <h1>MUY PRONTO <span class="soon">INICIAMOS.</span></h1>
+      <p class="lead">Estamos preparando una nueva forma de impulsar el futuro energético. En <strong>Photon Labs</strong> convertimos la ingeniería, el análisis y la innovación en soluciones fotovoltaicas para hogares, comercios y empresas en México.</p>
+      <div class="actions">
+        <a class="cta" href="mailto:contacto@photonlabs.mx?subject=Contacto%20-%20Photon%20Labs">
+          Hablemos de energía
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <span class="note">Próximamente en operaciones · México</span>
+      </div>
+      <div class="features">
+        <div class="feature"><i>⌁</i> Ingeniería aplicada</div>
+        <div class="feature"><i>✳</i> Sostenibilidad</div>
+        <div class="feature"><i>ϟ</i> Innovación energética</div>
+      </div>
+    </section>
+
+    <section class="visual" aria-label="Ilustración conceptual de energía solar">
+      <div class="orbit"></div><div class="sun"></div>
+      <div class="floating float-a"><small>El futuro</small><b>Es renovable.</b></div>
+      <div class="floating float-b"><small>Nuestra energía</small><b>Tu siguiente paso +</b></div>
+      <svg class="panel-art" viewBox="0 0 520 390" role="img" aria-label="Ilustración geométrica de un panel solar bajo el sol">
+        <defs>
+          <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#174778"/><stop offset="1" stop-color="#071b3b"/></linearGradient>
+          <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <path d="M68 282 113 105 455 105 411 282Z" fill="#0b2b55" opacity=".12"/>
+        <path d="M82 265 127 88 468 88 423 265Z" fill="url(#panel)" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+        <path d="m127 88 341 0-45 177H82Z" fill="url(#shine)"/>
+        <g stroke="#a9c9e8" stroke-width="3" opacity=".9">
+          <path d="m161 88-45 177M229 88l-45 177M297 88l-45 177M365 88l-45 177M433 88l-45 177"/>
+          <path d="m115 135 341 0M103 183l341 0M91 230l341 0"/>
+        </g>
+        <path d="M64 282h372l-18 24H47Z" fill="#071b3b"/>
+        <path d="M183 306h108l16 28H166Z" fill="#0b2b55"/>
+        <path d="M140 344h202" stroke="#15965b" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="430" cy="52" r="25" fill="#ffb51b"/>
+        <g stroke="#ffb51b" stroke-width="5" stroke-linecap="round"><path d="M430 12V2M430 102V92M390 52h-10M480 52h-10M402 24l-8-8M466 88l-8-8M458 24l8-8"/></g>
+        <path d="M75 95c-23-22-47-16-53 4-5 17 12 32 29 28 17-4 23-19 24-32Z" fill="#15965b"/>
+        <path d="M39 119c12-17 22-26 34-29" stroke="#d8f5e5" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-left"><strong>PHOTON LABS S.A. DE C.V.</strong><span>·</span><span>Soluciones fotovoltaicas en México</span></div>
+    <div class="student-mark"><img src="assets/emblema-a01743991.png" alt="Emblema académico A01743991"><span>Desarrollo académico · A01743991</span></div>
+    <span>© 2026 Photon Labs. Todos los derechos reservados.</span>
+  </footer>
+</div>
+</body>
+</html>
