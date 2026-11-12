@@ -30,7 +30,7 @@ function update() {
  if(index===0 && el('base-watts').value.trim()) p=numeric('base-watts',.1,1000,null);
  const n=Number(el('quantity').value),a=Number(el('angle').value),g=Number(el('irradiance').value),f=Number(el('factor').value)/100;
  const h=numeric('hsp',0,12,null),inv=numeric('inverter',1,100000,null),area=numeric('area',1,1000,null);
- el('roof').style.setProperty('--panel-tilt',a+'deg');el('sun').style.opacity=.2+.8*g/1000;el('quantity-out').textContent=n;el('angle-out').textContent=a+'°';el('irradiance-out').textContent=g+' W/m²';el('factor-out').textContent=fmt(f*100)+'%';
+ el('roof').style.setProperty('--panel-tilt',a+'deg');document.querySelector('.sun').style.opacity=.2+.8*g/1000;el('quantity-out').textContent=n;el('angle-out').textContent=a+'°';el('irradiance-out').textContent=g+' W/m²';el('factor-out').textContent=fmt(f*100)+'%';
  el('specs').innerHTML=model.p ? '<span class="pill">'+model.p+' Wp · ficha técnica STC</span><p class="small">Vmp '+model.v+' V · Imp '+fmt(model.i)+' mA<br>'+model.ref+'</p>' : '<span class="pill">Panel base · modelo pendiente</span><p class="small">Mayor voltaje registrado: 19.83 V. Corriente perpendicular: 3.52 mA. '+(p?'Potencia de '+fmt(p)+' W ingresada por el visitante.':'Confirma Pmax para estimar cargas.')+'</p>';
  el('fit').textContent=model.area && area!==null ? 'Capacidad preliminar de azotea: '+Math.floor(area*.7/model.area)+' módulos. '+(n*model.area>area*.7?'La cantidad elegida supera el área considerada.':'Cantidad dentro del área considerada.') : 'Dimensiones del panel base pendientes; capacidad de azotea no disponible.';
  el('roof').innerHTML=Array.from({length:Math.min(n,24)},()=>'<div class="pv '+(pose===0&&index===0?'down':'')+'"></div>').join('');
