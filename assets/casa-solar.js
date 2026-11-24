@@ -2,48 +2,205 @@
 const $=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat('es-MX',{maximumFractionDigits:2}).format(n);
 const catalog=[{p:null,v:null,i:null,w:1,h:1.6},{p:20,v:18.5,i:1090,w:.350,h:.440},{p:115,v:19,i:6040,w:.668,h:1.030},{p:360,v:38.4,i:9380,w:1.002,h:1.980}];
 const appliances=[['💡','Foco LED',10,false],['📺','Televisión',80,false],['📱','Cargar teléfono',15,false],['🚪','Portón eléctrico',500,true],['🥤','Licuadora',400,true],['💻','Laptop',65,false],['📶','Router',12,false],['🌀','Ventilador',50,true]];
-let state={time:'noon',orientation:'optimal',floors:1};
+const state = {time:'custom', orientation:'fixed', floors:2};
 $('loads').innerHTML=appliances.map(([icon,name,w,motor],i)=>`<div class="device"><span class="icon" aria-hidden="true">${icon}</span><label><input id="use-${i}" type="checkbox">${name}</label><details><summary>Editar potencia del equipo</summary><div class="watts"><input id="watts-${i}" type="number" min="1" max="20000" value="${w}" aria-label="Potencia en watts: ${name}"><span>W</span></div></details><span id="status-${i}" class="status"></span>${motor?'<small class="small">Revisar pico de arranque</small>':''}</div>`).join('');
 function number(id,min,max,integer=false){const x=Number($(id).value);const ok=$(id).value.trim()!==''&&Number.isFinite(x)&&x>=min&&x<=max&&(!integer||Number.isInteger(x));$(id).setCustomValidity(ok?'':`Ingresa ${integer?'un entero':'un valor'} entre ${min} y ${max}`);return ok?x:null;}
-function solar(p,n,time,orientation,factor,inv){const altitude=time==='day'?30:75;const g=time==='night'?0:time==='day'?700:1000;const capture=orientation==='down'?0:orientation==='up'?Math.sin(altitude*Math.PI/180):1;const dc=p*n*g/1000*capture;return {dc,power:Math.min(dc*factor,inv),g,altitude,capture};}
-let renderer,scene,camera,building,panelGroup,sunLight,windows=[],sunOrb,ambient;
-const viewport=$('viewport');let yaw=.67,pitch=.52,distance=22,target={x:0,y:2,z:0};
-function box(w,h,d,color,x,y,z,parent=scene){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.72}));mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
-function buildHouse(){if(!scene)return;if(building){scene.remove(building);building.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose();});}building=new THREE.Group();scene.add(building);windows=[];const height=state.floors*2.8;
-box(8,height,6,0xeae5d9,0,height/2,0,building);box(8.5,.22,6.5,0xc4c8c7,0,height+.11,0,building);
-for(let f=0;f<state.floors;f++){box(8.12,.13,6.12,0xb5b7b1,0,f*2.8+.18,0,building);for(const x of [-2.65,2.65]){box(1.65,1.45,.15,0xfaf9f3,x,f*2.8+1.55,3.08,building);windows.push(box(1.4,1.2,.17,0x42647a,x,f*2.8+1.55,3.11,building));box(.04,1.25,.18,0xe5e4dc,x,f*2.8+1.55,3.16,building);}for(const z of [-1.6,1.6]){box(.13,1.4,1.7,0xfaf9f3,4.05,f*2.8+1.55,z,building);windows.push(box(.15,1.18,1.46,0x42647a,4.09,f*2.8+1.55,z,building));windows.push(box(.15,1.18,1.46,0x42647a,-4.09,f*2.8+1.55,z,building));}windows.push(box(1.5,1.15,.12,0x42647a,0,f*2.8+1.5,-3.07,building));}
-box(1.3,2.2,.14,0x71513a,0,1.1,3.1,building);box(.08,.08,.1,0xe1bd6f,.43,1.1,3.2,building);box(2,.16,1.2,0xb5b5af,0,.08,3.5,building);box(2.2,.14,1.4,0xd3d2c8,0,2.45,3.55,building);
-// Low roof edge, inset panel deck and wall-mounted inverter.
-box(8.4,.22,.12,0xc6cac5,0,height+.32,-3.15,building);box(.12,.22,6.3,0xc6cac5,-4.15,height+.32,0,building);box(.45,.65,.22,0x17965b,1.15,1.15,3.18,building);
-panelGroup=new THREE.Group();building.add(panelGroup);}
-function buildPanels(n,model){if(!panelGroup)return;while(panelGroup.children.length){const o=panelGroup.children[0];panelGroup.remove(o);o.traverse(m=>{m.geometry?.dispose();m.material?.dispose();});}const height=state.floors*2.8;const altitude=state.time==='day'?30:75;const tilt=state.orientation==='down'?Math.PI:state.orientation==='optimal'?(90-altitude)*Math.PI/180:0;
-for(let i=0;i<n;i++){const group=new THREE.Group();const cols=Math.min(6,n),rows=Math.ceil(n/cols);group.position.set((i%cols-(Math.min(cols,n-Math.floor(i/cols)*cols)-1)/2)*1.22,height+1.12,(Math.floor(i/cols)-(rows-1)/2)*1.46);panelGroup.add(group);const support=box(.07,.7,.07,0x7b868c,0,-.45,0,group);const panel=new THREE.Group();group.add(panel);panel.rotation.z=-tilt;box(1.04,.065,1.30,0xa9b9c4,0,0,0,panel);box(.98,.012,1.24,0xd0d3d2,0,-.04,0,panel);for(let x=0;x<4;x++)for(let z=0;z<6;z++){const cell=box(.226,.014,.185,0x102f52,(x-1.5)*.242,.04,(z-2.5)*.201,panel);cell.material.metalness=.3;cell.material.roughness=.32;}}
+const radians = Math.PI / 180;
+function daylight() {
+  const minute = Number($('solar-hour').value);
+  const stops = [[420,8,180], [540,30,700], [720,75,1000], [900,42,760], [1140,5,90]];
+  const end = stops.findIndex((stop, i) => i > 0 && minute <= stop[0]);
+  const [startMinute, startAltitude, startG] = stops[end - 1];
+  const [endMinute, endAltitude, endG] = stops[end];
+  const mix = (minute - startMinute) / (endMinute - startMinute);
+  const altitude = startAltitude + mix * (endAltitude-startAltitude);
+  const azimuth = (minute <= 720 ? (720-minute)/300 : (720-minute)/420) * 83 * radians;
+  const angle = altitude * radians;
+  return {minute, altitude, g:state.time === 'night' ? 0 : startG + mix*(endG-startG),
+    direction:{x:Math.cos(angle)*Math.sin(azimuth), y:Math.sin(angle), z:Math.cos(angle)*Math.cos(azimuth)}};
+}
+function panelNormal(light) {
+  if (state.orientation === 'optimal') return light.direction;
+  if (state.orientation === 'down') return {x:0,y:-1,z:0};
+  const tilt = state.orientation === 'fixed' ? Number($('tilt').value)*radians : 0;
+  return {x:0,y:Math.cos(tilt),z:Math.sin(tilt)};
+}
+function solar(p,n,light,factor,inv) {
+  const normal=panelNormal(light), sun=light.direction;
+  const capture=Math.max(0, Math.min(1, normal.x*sun.x+normal.y*sun.y+normal.z*sun.z));
+  const dc = p*n*light.g/1000*capture;
+  return {dc,power:Math.min(dc*factor,inv)};
+}
+let renderer,scene,camera,building,panelGroup,sunLight,windows=[],ambient,panels=[];
+const viewport=$('viewport');
+let yaw=.64,pitch=.63,distance=25.5,target={x:0,y:1.7,z:0};
+function buildHouse() {
+  if (!scene) return;
+  if (building) scene.remove(building);
+  windows=[]; panels=[];
+  building=arquitectura.house(scene,state.floors,windows);
+  panelGroup=new THREE.Group();
+  building.add(panelGroup);
+}
+function arrangement(n) {
+  const cols=Math.min(6,Math.ceil(Math.sqrt(n*1.4))), rows=Math.ceil(n/cols);
+  return {cols,rows,freeX:Math.max(0,3.9-((cols-1)*1.23+1.35)/2),
+    freeZ:Math.max(0,2.96-((rows-1)*1.45+1.42)/2)};
+}
+function buildPanels(n,light) {
+  if (!panelGroup) return;
+  const layout=arrangement(n);
+  while (panels.length<n) panels.push(arquitectura.panel(panelGroup));
+  while (panels.length>n) panelGroup.remove(panels.pop().mount);
+  panelGroup.position.set(Number($('offset-x').value)*layout.freeX/100,state.floors*2.8+.86,
+    Number($('offset-z').value)*layout.freeZ/100);
+  const normal=new THREE.Vector3().copy(panelNormal(light)), up=new THREE.Vector3(0,1,0);
+  panels.forEach(({mount,face},i)=>{
+    const row=Math.floor(i/layout.cols);
+    const rowCount=Math.min(layout.cols,n-row*layout.cols);
+    mount.position.set((i%layout.cols-(rowCount-1)/2)*1.23,0,(row-(layout.rows-1)/2)*1.45);
+    face.quaternion.setFromUnitVectors(up,normal);
+  });
 }
 function cameraUpdate(){if(!camera)return;camera.position.set(target.x+distance*Math.cos(pitch)*Math.sin(yaw),target.y+distance*Math.sin(pitch),target.z+distance*Math.cos(pitch)*Math.cos(yaw));camera.lookAt(target.x,target.y,target.z);renderer.render(scene,camera);}
-function softwareRenderer(){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');let width=1,height=1;return {domElement:canvas,shadowMap:{},setPixelRatio(){},setSize(w,h){width=canvas.width=w;height=canvas.height=h;},render(scene,camera){scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);ctx.fillStyle='#'+scene.background.getHexString();ctx.fillRect(0,0,width,height);const faces=[];const vector=new THREE.Vector3();scene.traverse(obj=>{if(!obj.isMesh||!obj.visible)return;let parent=obj.parent;while(parent){if(!parent.visible)return;parent=parent.parent;}const geo=obj.geometry,positions=geo.attributes.position,index=geo.index;const count=index?index.count:positions.count;for(let i=0;i<count;i+=3){const points=[],world=[];let depth=0,skip=false;for(let k=0;k<3;k++){const j=index?index.getX(i+k):i+k;vector.fromBufferAttribute(positions,j).applyMatrix4(obj.matrixWorld);world.push(vector.clone());const c=vector.clone().applyMatrix4(camera.matrixWorldInverse);depth+=-c.z;vector.project(camera);if(vector.z>1||vector.z< -1)skip=true;points.push([(vector.x+1)*width/2,(1-vector.y)*height/2,vector.z]);}if(skip)continue;const normal=new THREE.Vector3().subVectors(world[1],world[0]).cross(new THREE.Vector3().subVectors(world[2],world[0])).normalize();if(normal.dot(new THREE.Vector3().subVectors(camera.position,world[0]))<=0)continue;const night=state.time==='night';const light=new THREE.Vector3(Math.cos((state.time==='day'?30:75)*Math.PI/180),Math.sin((state.time==='day'?30:75)*Math.PI/180),0);const shade=night?.28:.55+.45*Math.max(0,normal.dot(light));const color=obj.material.color.clone().multiplyScalar(shade);if(obj.material.emissive)color.add(obj.material.emissive.clone().multiplyScalar(obj.material.emissiveIntensity||0));faces.push({points,depth:depth/3,color:'#'+color.getHexString()});}});const img=ctx.getImageData(0,0,width,height),pixels=img.data,zbuffer=new Float32Array(width*height).fill(Infinity);for(const face of faces){const [a,b,c]=face.points,den=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);if(Math.abs(den)<.01)continue;const loX=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),hiX=Math.min(width-1,Math.ceil(Math.max(a[0],b[0],c[0]))),loY=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),hiY=Math.min(height-1,Math.ceil(Math.max(a[1],b[1],c[1]))),rgb=parseInt(face.color.slice(1),16);for(let y=loY;y<=hiY;y++)for(let x=loX;x<=hiX;x++){const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/den,v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/den,w=1-u-v;if(u<0||v<0||w<0)continue;const z=u*a[2]+v*b[2]+w*c[2],j=y*width+x;if(z>=zbuffer[j])continue;zbuffer[j]=z;const k=j*4;pixels[k]=rgb>>16;pixels[k+1]=(rgb>>8)&255;pixels[k+2]=rgb&255;pixels[k+3]=255;}}ctx.putImageData(img,0,0);
-}};}
-function setup3D(){try{if(!window.THREE)throw Error('3D no disponible');scene=new THREE.Scene();scene.background=new THREE.Color(0xc8dce8);scene.fog=new THREE.Fog(0xc8dce8,40,95);camera=new THREE.PerspectiveCamera(40,1,.1,120);try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});}catch(webglError){renderer=softwareRenderer();}renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;viewport.prepend(renderer.domElement);ambient=new THREE.HemisphereLight(0xd6edff,0x636d43,2.1);scene.add(ambient);sunLight=new THREE.DirectionalLight(0xfff4d8,3);sunLight.castShadow=true;sunLight.shadow.mapSize.set(2048,2048);Object.assign(sunLight.shadow.camera,{left:-15,right:15,top:15,bottom:-15});sunLight.shadow.bias=-.0004;scene.add(sunLight);box(90,.1,90,0x8faaa0,0,-.14,0);box(14,.16,12,0xb6c5b1,0,-.04,0);box(2,.05,5,0xd8d6cc,0,.07,5);box(18,.04,3,0x6b7881,0,-.02,9);const grid=new THREE.GridHelper(90,90,0x93a9a3,0x93a9a3);grid.position.y=-.08;scene.add(grid);
-for(const [x,z] of [[-6,-4],[6,-4],[-6,4],[6,4]]){box(.25,1.4,.25,0x73533a,x,.65,z);const crown=new THREE.Mesh(new THREE.SphereGeometry(.9,16,12),new THREE.MeshStandardMaterial({color:0x44785d,roughness:1}));crown.position.set(x,1.9,z);crown.castShadow=true;scene.add(crown);}sunOrb=new THREE.Mesh(new THREE.SphereGeometry(.65,20,16),new THREE.MeshBasicMaterial({color:0xffd77c}));scene.add(sunOrb);buildHouse();const resize=()=>{const w=viewport.clientWidth,h=viewport.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();cameraUpdate();};new ResizeObserver(resize).observe(viewport);resize();
-}catch(error){scene=null;camera=null;const p=document.createElement('p');p.textContent='Tu navegador no pudo iniciar el visor 3D. Activa WebGL o prueba otro navegador; los cálculos y controles siguen disponibles.';p.style.cssText='position:absolute;top:40%;padding:24px';viewport.append(p);}}
+function setup3D() {
+  try {
+    scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x182a33);
+    camera=new THREE.PerspectiveCamera(38,1,.1,120);
+    try { renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); }
+    catch { renderer=softwareRenderer(); }
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+    renderer.shadowMap.enabled=true;
+    renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.05;
+    viewport.prepend(renderer.domElement);
+    ambient=new THREE.HemisphereLight(0xebf4ff,0xa39a7e,1.65);
+    scene.add(ambient);
+    sunLight=new THREE.DirectionalLight(0xffefd4,2.7);
+    sunLight.castShadow=true;
+    sunLight.position.set(8,15,8);
+    sunLight.shadow.mapSize.set(2048,2048);
+    Object.assign(sunLight.shadow.camera,{left:-13,right:13,top:13,bottom:-13,near:.1,far:55});
+    sunLight.shadow.camera.updateProjectionMatrix();
+    sunLight.shadow.normalBias=.018;
+    sunLight.shadow.bias=-.00018;
+    scene.add(sunLight);
+    arquitectura.landscape(scene);
+    buildHouse();
+    const resize=()=>{
+      const w=viewport.clientWidth,h=viewport.clientHeight;
+      if(!w || !h) return;
+      renderer.setSize(w,h);
+      camera.aspect=w/h;
+      // Mantener el terreno en cuadro incluso en pantallas verticales.
+      camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(19*radians)/Math.min(1,w/h)));
+      camera.updateProjectionMatrix();
+      cameraUpdate();
+    };
+    new ResizeObserver(resize).observe(viewport);
+    resize();
+  } catch(error) {
+    console.error(error);
+    scene=null; camera=null;
+    const message=document.createElement('p');
+    message.textContent='El visor no pudo iniciarse. Puedes seguir explorando las potencias y los equipos.';
+    message.style.cssText='position:absolute;top:40%;padding:24px;color:white';
+    viewport.append(message);
+  }
+}
+let placing=false;
+function setPlacement(active) {
+  placing=active;
+  viewport.classList.toggle('placing',active);
+  $('place-array').setAttribute('aria-pressed',String(active));
+  $('place-array').textContent=active?'Cancelar colocación':'Elegir punto en la azotea';
+  $('placement-help').textContent=active?'Toca la azotea para centrar el grupo en ese punto.':'Elige un punto en el modelo o usa los dos ajustes.';
+}
+$('place-array').onclick=()=>{
+  if (!scene) return;
+  setPlacement(!placing);
+  if(placing){cameraPreset('roof');viewport.focus();}
+};
+viewport.addEventListener('keydown',e=>{if(e.key==='Escape') setPlacement(false);});
+function positionAt(event) {
+  const rect=viewport.getBoundingClientRect();
+  const pointer=new THREE.Vector2(2*(event.clientX-rect.left)/rect.width-1,1-2*(event.clientY-rect.top)/rect.height);
+  const ray=new THREE.Raycaster();
+  ray.setFromCamera(pointer,camera);
+  const roof=new THREE.Plane(new THREE.Vector3(0,1,0),-(state.floors*2.8+.18));
+  const hit=ray.ray.intersectPlane(roof,new THREE.Vector3());
+  if (!hit || Math.abs(hit.x)>4.16 || Math.abs(hit.z)>3.16) return;
+  const {freeX,freeZ}=arrangement(panels.length||1);
+  $('offset-x').value=freeX?Math.round(100*hit.x/freeX):0;
+  $('offset-z').value=freeZ?Math.round(100*hit.z/freeZ):0;
+  setPlacement(false);
+  update();
+}
+let materialRedraw=0;
+window.addEventListener('studio-material',()=>{cancelAnimationFrame(materialRedraw); materialRedraw=requestAnimationFrame(cameraUpdate);});
 const pointers=new Map();let pinch=0;
-viewport.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;cancelAnimationFrame(cameraAnimation);viewport.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});pinch=0;});
+viewport.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;if(placing){positionAt(e);return;}cancelAnimationFrame(cameraAnimation);viewport.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});pinch=0;});
 viewport.addEventListener('pointermove',e=>{const last=pointers.get(e.pointerId);if(!last)return;const dx=e.clientX-last.x,dy=e.clientY-last.y;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const [a,b]=[...pointers.values()],gap=Math.hypot(a.x-b.x,a.y-b.y);if(pinch)distance=Math.max(10,Math.min(40,distance*pinch/gap));pinch=gap;pan(dx/2,dy/2);}else if(e.shiftKey||e.buttons===2)pan(dx,dy);else{yaw-=dx*.007;pitch=Math.max(.12,Math.min(1.35,pitch+dy*.005));}cameraUpdate();});
 function pan(dx,dy){target.x-=dx*.012*Math.cos(yaw);target.z+=dx*.012*Math.sin(yaw);target.y=Math.max(0,Math.min(8,target.y+dy*.012));target.x=Math.max(-8,Math.min(8,target.x));target.z=Math.max(-8,Math.min(8,target.z));}
 for(const type of ['pointerup','pointercancel','lostpointercapture'])viewport.addEventListener(type,e=>{pointers.delete(e.pointerId);pinch=0;});viewport.addEventListener('contextmenu',e=>e.preventDefault());viewport.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(10,Math.min(40,distance+e.deltaY*.015));cameraUpdate();},{passive:false});
 let cameraAnimation=0;
-function cameraPreset(view){cancelAnimationFrame(cameraAnimation);const start={yaw,pitch,distance,target:{...target}},end={yaw:view==='roof'?.02:.67,pitch:view==='roof'?1.35:.52,distance:view==='roof'?17:22,target:{x:0,y:state.floors*1.4,z:0}};const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const duration=reduced?0:550;let began;function frame(now){if(began===undefined)began=now;const t=duration?Math.min(1,(now-began)/duration):1,e=1-Math.pow(1-t,3);yaw=start.yaw+(end.yaw-start.yaw)*e;pitch=start.pitch+(end.pitch-start.pitch)*e;distance=start.distance+(end.distance-start.distance)*e;for(const key of ['x','y','z'])target[key]=start.target[key]+(end.target[key]-start.target[key])*e;cameraUpdate();if(t<1)cameraAnimation=requestAnimationFrame(frame);}cameraAnimation=requestAnimationFrame(frame);} $('reset').onclick=()=>cameraPreset('house');$('view-house').onclick=()=>cameraPreset('house');$('view-roof').onclick=()=>cameraPreset('roof');$('zoom-in').onclick=()=>{distance=Math.max(10,distance-2);cameraUpdate();};$('zoom-out').onclick=()=>{distance=Math.min(40,distance+2);cameraUpdate();};viewport.addEventListener('keydown',e=>{if(e.target!==viewport)return;if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')yaw-=.1;if(e.key==='ArrowRight')yaw+=.1;if(e.key==='ArrowUp')pitch=Math.min(1.35,pitch+.1);if(e.key==='ArrowDown')pitch=Math.max(.12,pitch-.1);if(e.key==='+')distance=Math.max(10,distance-2);if(e.key==='-')distance=Math.min(40,distance+2);cameraUpdate();});
-function update(){const index=Number($('panel').value),m=catalog[index],n=number('quantity',1,24,true),inv=number('inverter',1,100000),f=number('factor',1,100);$('base-input').hidden=index!==0;const p=index===0?number('base-watts',.1,1000):m.p;const r=p!==null&&n!==null&&inv!==null&&f!==null?solar(p,n,state.time,state.orientation,f/100,inv):null;
+function cameraPreset(view){cancelAnimationFrame(cameraAnimation);const start={yaw,pitch,distance,target:{...target}},end={yaw:view==='roof'?.02:.64,pitch:view==='roof'?1.43:.63,distance:view==='roof'?17:25.5,target:{x:0,y:view==='roof'?state.floors*2.8:state.floors*.85,z:0}};const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const duration=reduced?0:550;let began;function frame(now){if(began===undefined)began=now;const t=duration?Math.min(1,(now-began)/duration):1,e=1-Math.pow(1-t,3);yaw=start.yaw+(end.yaw-start.yaw)*e;pitch=start.pitch+(end.pitch-start.pitch)*e;distance=start.distance+(end.distance-start.distance)*e;for(const key of ['x','y','z'])target[key]=start.target[key]+(end.target[key]-start.target[key])*e;cameraUpdate();if(t<1)cameraAnimation=requestAnimationFrame(frame);}cameraAnimation=requestAnimationFrame(frame);} $('reset').onclick=()=>cameraPreset('house');$('view-house').onclick=()=>cameraPreset('house');$('view-roof').onclick=()=>cameraPreset('roof');$('zoom-in').onclick=()=>{distance=Math.max(10,distance-2);cameraUpdate();};$('zoom-out').onclick=()=>{distance=Math.min(40,distance+2);cameraUpdate();};viewport.addEventListener('keydown',e=>{if(e.target!==viewport)return;if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')yaw-=.1;if(e.key==='ArrowRight')yaw+=.1;if(e.key==='ArrowUp')pitch=Math.min(1.35,pitch+.1);if(e.key==='ArrowDown')pitch=Math.max(.12,pitch-.1);if(e.key==='+')distance=Math.max(10,distance-2);if(e.key==='-')distance=Math.min(40,distance+2);cameraUpdate();});
+function update(){const index=Number($('panel').value),m=catalog[index],n=number('quantity',1,24,true),inv=number('inverter',1,100000),f=number('factor',1,100);$('base-input').hidden=index!==0;const p=index===0?number('base-watts',.1,1000):m.p;const light=daylight();const r=p!==null&&n!==null&&inv!==null&&f!==null?solar(p,n,light,f/100,inv):null;
 $('specs').textContent=m.p?`${m.p} Wp · Vmp ${m.v} V · Imp ${fmt(m.i)} mA. Referencia de catálogo; modelo descatalogado.`:'Panel base · identidad y potencia nominal pendientes.';
 $('fit').textContent=m.p&&n?`Área neta de módulos: ${fmt(n*m.w*m.h)} m². ${n*m.w*m.h>48*.7?'Supera el 70% de la azotea representada.':'Distribución visual ilustrativa; requiere revisión de separaciones.'}`:'Dimensiones del panel base pendientes. La escala visual es ilustrativa.';
-const night=state.time==='night',altitude=state.time==='day'?30:75;$('scene-time').textContent=night?'Noche · sin generación solar':state.time==='day'?'Luz de día':'Luz de mediodía';$('scene-description').textContent=`Casa de ${state.floors} ${state.floors===1?'piso':'pisos'} · ${n??'—'} ${n===1?'módulo':'módulos'}`;
-$('sun-note').textContent=night?'Sin radiación solar. Para encender equipos necesitas red o batería.':`Escenario ilustrativo: altura solar ${altitude}° · irradiancia directa ${state.time==='day'?700:1000} W/m².`;
-$('orientation-note').textContent=state.orientation==='optimal'?(night?'Sin orientación óptima nocturna; conserva la posición de mediodía.':`Panel inclinado ${90-altitude}° respecto a la horizontal, perpendicular al sol simulado.`):state.orientation==='up'?'Cara activa horizontal hacia el cielo.':'Cara activa hacia el suelo: sin captación directa frontal.';
+const night=state.time==='night';
+const clock=String(Math.floor(light.minute/60)).padStart(2,'0')+':'+String(light.minute%60).padStart(2,'0');
+$('scene-time').textContent=night?'Escena nocturna':clock+' · Luz solar';
+$('hour-readout').textContent=night?'Noche':clock;
+$('solar-hour').setAttribute('aria-valuetext',clock);
+$('scene-description').textContent=`Casa de ${state.floors} ${state.floors===1?'piso':'pisos'} · ${n??'—'} ${n===1?'módulo':'módulos'}`;
+$('sun-note').textContent=night?'Sin radiación solar. Para encender equipos necesitas red o batería.':`Escenario ilustrativo con altura solar de ${fmt(light.altitude)}° e irradiancia directa de ${fmt(light.g)} W/m². Las sombras son una guía visual.`;
+$('tilt-controls').hidden=state.orientation!=='fixed';
+$('tilt-value').textContent=$('tilt').value+'°';
+const notes={optimal:night?'El soporte conserva su última posición.':`Seguimiento ideal. El panel gira hacia el sol y se inclina ${fmt(90-light.altitude)}°.`,
+  fixed:'La cara activa mira al sur del modelo. Desliza la hora para comparar la luz que recibe.',
+  up:'La cara activa queda horizontal hacia el cielo.',down:'La cara activa mira hacia el suelo.'};
+$('orientation-note').textContent=notes[state.orientation];
 let demand=0,valid=true;appliances.forEach((a,i)=>{const w=number('watts-'+i,1,20000);if($('use-'+i).checked){if(w===null)valid=false;else demand+=w;}const enough=r&&w!==null&&r.power>=w;$('status-'+i).textContent=w===null?'Revisa la potencia':!r?'Pendiente de potencia nominal':enough?(a[3]?'Marcha posible · arranque sin validar':'Alcanza por separado'):'No alcanza por separado';});
 $('instant').textContent=r?fmt(r.power)+' W':'Pendiente';$('demand').textContent=valid?fmt(demand)+' W':'Revisar';$('margin').textContent=r&&valid?(r.power-demand>=0?'+':'−')+fmt(Math.abs(r.power-demand))+' W':'—';
 $('balance').textContent=!r?'Confirma los watts de tu panel o elige un modelo de catálogo para explorar cargas.':!valid?'Corrige la potencia de los equipos seleccionados.':night?'Generación solar: 0 W. No se incluye alimentación de red ni batería.':demand===0?'Selecciona aparatos para comparar su consumo simultáneo.':demand<=r.power?'La potencia de marcha alcanza para el conjunto seleccionado. Los motores necesitan validar su pico de arranque.':`Faltan ${fmt(demand-r.power)} W para el conjunto seleccionado; reduce cargas o aumenta la capacidad del sistema.`;
 $('electrical').textContent=r&&m.v?`Referencia por módulo: ${m.v} Vmp · corriente equivalente DC a ese Vmp: ${fmt(r.dc/n/m.v*1000)} mA. No es una predicción del voltaje real. No conectes aparatos directamente al panel.`:'Las mediciones experimentales de abajo son independientes del escenario de la casa.';
-if(scene){buildPanels(n??1,m);const sunAngle=altitude*Math.PI/180;sunLight.position.set(Math.cos(sunAngle)*15,Math.sin(sunAngle)*15,0);sunOrb.position.copy(sunLight.position);sunOrb.visible=!night;sunLight.intensity=night?0:state.time==='day'?2.2:3;ambient.intensity=night?.32:2;scene.background.set(night?0x0c172e:state.time==='day'?0xcbdde1:0xc6ddec);scene.fog.color.copy(scene.background);const lit=r&&valid&&demand>0&&demand<=r.power;windows.forEach(w=>{w.material.color.set(lit?0xffd67d:0x42647a);w.material.emissive.set(lit?0xffa940:0x000000);w.material.emissiveIntensity=lit?.5:0;});cameraUpdate();}}
-for(const b of document.querySelectorAll('[data-time],[data-orientation],[data-floors]'))b.onclick=()=>{const key=b.dataset.time?'time':b.dataset.orientation?'orientation':'floors';state[key]=key==='floors'?Number(b.dataset[key]):b.dataset[key];for(const other of document.querySelectorAll('[data-'+key+']'))other.setAttribute('aria-pressed',String(other===b));if(key==='floors')buildHouse();update();};
+if(scene) {
+  buildPanels(n??0,light);
+  sunLight.position.copy(light.direction).multiplyScalar(20);
+  sunLight.intensity=night?0:1.65+light.g*.0015;
+  sunLight.color.set(light.altitude<25?0xffce95:0xffeed6);
+  ambient.intensity=night?.28:1.52;
+  scene.background.set(night?0x101b29:0x22343e);
+  scene.userData.shadowRevision=[state.floors,n,light.minute,night,state.orientation,$('tilt').value,$('offset-x').value,$('offset-z').value].join('/');
+  const lit=r&&valid&&demand>0&&demand<=r.power;
+  if(windows.length) {
+    windows[0].material.emissive.set(lit?0xe3a954:0x000000);
+    windows[0].material.emissiveIntensity=lit?.48:0;
+  }
+  cameraUpdate();
+}}
+function markTime() {
+  document.querySelectorAll('[data-time]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.time===state.time)));
+}
+$('solar-hour').addEventListener('input',()=>{
+  const minute=Number($('solar-hour').value);
+  state.time=minute===540?'day':minute===720?'noon':'custom';
+  markTime();
+});
+for(const button of document.querySelectorAll('[data-time],[data-orientation],[data-floors]')) {
+  button.onclick=()=>{
+    const key=Object.keys(button.dataset)[0],value=button.dataset[key];
+    state[key]=key==='floors'?Number(value):value;
+    if(key==='time' && value!=='night') $('solar-hour').value=value==='day'?540:720;
+    for(const other of document.querySelectorAll('[data-'+key+']')) other.setAttribute('aria-pressed',String(other===button));
+    if(key==='floors') buildHouse();
+    update();
+  };
+}
 for(const input of document.querySelectorAll('input,select'))input.addEventListener('input',update);
 $('less').onclick=()=>{$('quantity').value=Math.max(1,Number($('quantity').value)-1);update();};$('more').onclick=()=>{$('quantity').value=Math.min(24,Number($('quantity').value)+1);update();};
 for(const b of document.querySelectorAll('[data-pose]'))b.onclick=()=>{const readings=['Hacia abajo · 8.94 V · −2.22 mA','Hacia arriba · 19.83 V · 0.0269 mA','Perpendicular al sol · 19.34 V · 3.52 mA'];$('reading').textContent=readings[Number(b.dataset.pose)];for(const o of document.querySelectorAll('[data-pose]'))o.setAttribute('aria-pressed',String(o===b));};
