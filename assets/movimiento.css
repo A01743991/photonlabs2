@@ -1,0 +1,30 @@
+/* A horizon, its path and the sun share the same coordinates. */
+.solar-sign{display:flex;align-items:center;gap:.7rem;margin-bottom:.85rem;font:700 .72rem/1.4 system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#e2ebdf}
+.solar-sign svg{flex:none;overflow:visible}
+.horizon,.orbit-line{fill:none;stroke:currentColor;stroke-width:1}
+.horizon{opacity:.54}.orbit-line{stroke:#ffca65;stroke-dasharray:1}
+.orbit-sun{fill:#ffd477;transform:translate(26px,3.5px)}
+.load-ray{position:fixed;inset:0 0 auto;height:4px;z-index:9999;pointer-events:none;overflow:hidden}
+.load-ray i{display:block;height:100%;background:linear-gradient(90deg,transparent,#79dfaf 42%,#ffcb66 88%,#fff1c9);transform-origin:left}
+@media(prefers-reduced-motion:no-preference){
+ .load-ray{animation:ray-timeout 2.4s both}
+ .load-ray i{animation:ray-enter 1s cubic-bezier(.16,.7,.27,1) both}
+ .load-ray.ready{animation:ray-finish .38s ease-out forwards}
+ .solar-sign .orbit-line{animation:trace-orbit .85s ease-out both}
+ [data-step]:not([hidden]){animation:step-arrival .38s cubic-bezier(.22,.7,.2,1) both}
+ @supports(animation-timeline:view()){
+  .solar-cover .cover-photo{animation:photo-travel linear both;animation-timeline:view();animation-range:exit}
+ }
+
+}
+@keyframes photo-travel{from{transform:scale(1.015)}to{transform:translateY(3%) scale(1.075)}}
+@keyframes trace-orbit{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes ray-enter{from{transform:scaleX(.04)}to{transform:scaleX(.92)}}
+@keyframes ray-timeout{0%,80%{opacity:1}100%{opacity:0}}
+@keyframes ray-finish{from{opacity:1}to{opacity:0;transform:translateX(5%)}}
+@keyframes step-arrival{from{opacity:.5;translate:12px 0}to{opacity:1;translate:0 0}}
+@media(prefers-reduced-motion:reduce){.load-ray{display:none}}
+@media(prefers-reduced-motion:no-preference){
+ body.arriving::after{content:"";position:fixed;inset:0;z-index:9000;pointer-events:none;background:linear-gradient(110deg,#102f36,#24514e 91%,#ffcb66);transform-origin:left center;animation:solar-wipe .42s cubic-bezier(.22,.75,.3,1) both}
+}
+@keyframes solar-wipe{from{transform:scaleX(1);opacity:.84}to{transform:scaleX(0);opacity:0}}

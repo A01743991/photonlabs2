@@ -61,8 +61,8 @@ header nav a{transition:color .2s}header nav a:hover{color:#15965b}.solutions ar
 .studio-preview{display:block;overflow:hidden;border-radius:14px;background:#182a33}.studio-preview img{display:block;width:100%;height:auto}
 @media(max-width:650px){.solar-cover{width:calc(100% - 24px);align-items:flex-end;padding:145px 24px 44px;min-height:510px}.cover-photo{object-position:65% 90%}.solar-cover:before{background:linear-gradient(0deg,#071b3bf7 0%,#071b3bcc 42%,#071b3b0a 90%)}.cover-copy h1{font-size:58px}.solar-cover .actions{gap:16px}.photo-credit{bottom:9px}.cover-copy p{margin:14px 0 20px}}
 </style>
-<link rel="stylesheet" href="assets/ambiente.css"><script defer src="assets/entradas.js"></script></head>
-<body class="ambiente index">
+<link rel="stylesheet" href="assets/ambiente.css"><link rel="stylesheet" href="assets/movimiento.css"><script defer src="assets/gsap.min.js"></script><script defer src="assets/entradas.js"></script></head>
+<body class="ambiente index"><div class="load-ray" aria-hidden="true"><i></i></div>
 <div class="page">
   <div class="topline"></div>
   <header>
@@ -78,7 +78,7 @@ header nav a{transition:color .2s}header nav a:hover{color:#15965b}.solutions ar
   <main class="solar-cover">
     <img class="cover-photo" src="assets/techos-solares.webp" width="1800" height="1200" fetchpriority="high" alt="Paneles solares sobre los tejados de dos viviendas al atardecer">
     <section class="cover-copy">
-      <h1>El sol, en<br><span>tu techo.</span></h1>
+      <div class="solar-sign"><svg aria-hidden="true" viewBox="0 0 52 24" width="52" height="24"><path class="horizon" d="M1 21h50"/><path class="orbit-line" pathLength="1" d="M6 20Q26 -13 46 20"/><g class="orbit-sun"><circle cx="0" cy="0" r="3.5"/></g></svg><span>Energía solar en México</span></div><h1>El sol, en<br><span>tu techo.</span></h1>
       <p>Descubre qué cambiaría en tu hogar o negocio con paneles solares. Empieza con tu recibo de luz o explora una instalación en 3D.</p>
       <div class="actions">
         <a class="cta" href="cotizador.html">Cotizar mi proyecto <span aria-hidden="true">→</span></a>
