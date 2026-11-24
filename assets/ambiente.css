@@ -1,0 +1,15 @@
+body.ambiente,.ambiente .page{background:#122e34;color:#edf2ec}
+.ambiente .page{background:radial-gradient(ellipse at 94% 25%,#214a49 0,transparent 55%),#122e34}
+.ambiente header{background:transparent;border-color:#3e585c}
+.ambiente header a,.ambiente header .brand,.ambiente .brand-name,.ambiente header nav a{color:#f4f2de}
+.ambiente .brand-name span,.ambiente .section-heading>p,.ambiente .intro p,.ambiente .hero .lead,.index .commercial>p,.index .process li p,.index .commercial>.section-label,.ambiente .guide p,.ambiente footer p,.ambiente footer a,.ambiente .cfe-copy p,.ambiente .faq details p{color:#c7d7d3}
+.ambiente .eyebrow,.ambiente .section-label,.cotizador h1 span,.ambiente .guide a,.ambiente .faq a,.ambiente .cfe-copy a{color:#86dfac}
+.ambiente .commercial:has(.solutions) h2,.index .commercial h2{color:#edf2ec}
+.ambiente :is(.solutions article,.quote-start,.quote form,.planner,.request-section,.flow-card,.sidebar,.devices-section,.guide .card,.quote-bridge){color:#102e36}
+.ambiente :is(.solutions article,.quote-start,.planner,.request-section,.flow-card,.sidebar,.devices-section,.guide .card){background:#f2f0e6}
+.ambiente :is(.planner,.request-section,.devices-section,.card) .eyebrow,.ambiente .guide .card a{color:#14744c}
+.ambiente .guide .card p{color:#465f68}.index .quote>div:first-child>p{color:#cad9d5}.ambiente .footer-left strong,.ambiente .student-mark span,.ambiente footer{color:#c2d1ce}
+.analysis-card{order:3;padding:clamp(18px,3vw,36px);background:#122d32;color:#e4f3ea;border-top:1px solid #40605e}
+.analysis-card h2{margin:0;font-size:clamp(23px,3vw,32px)}.analysis-card p{font-size:14px;color:#c7d9d3;max-width:58ch}.analysis-card figure{margin:24px 0 8px}.analysis-card figcaption,.analysis-card h3{font-weight:700;font-size:15px}.analysis-card figcaption span{color:#a8c2ba;font-weight:400}
+.plot-row{margin:12px 0 0}.plot-row span,.axis-time{font-size:11px;color:#bdcec8}.plot-row svg{display:block;width:100%;height:126px}.axis-time,#power-bars div{display:flex;justify-content:space-between}
+#power-bars{border-top:1px solid #39565a;margin-top:16px}#power-bars div{font-size:13px}#power-bars meter{display:block;width:100%;height:10px;margin:5px 0 12px;appearance:none;background:#304b50;border:0;border-radius:4px}meter::-webkit-meter-bar{background:#304b50;border:none}meter::-webkit-meter-optimum-value{background:#77e2ac}#bar-load::-webkit-meter-optimum-value{background:#ffd077}meter::-moz-meter-bar{background:#77e2ac}#bar-load::-moz-meter-bar{background:#ffd077}

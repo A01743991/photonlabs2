@@ -6,8 +6,7 @@ const state = {time:'custom', orientation:'fixed', floors:2};
 $('loads').innerHTML=appliances.map(([icon,name,w,motor],i)=>`<div class="device"><span class="icon" aria-hidden="true">${icon}</span><label><input id="use-${i}" type="checkbox">${name}</label><details><summary>Editar potencia del equipo</summary><div class="watts"><input id="watts-${i}" type="number" min="1" max="20000" value="${w}" aria-label="Potencia en watts: ${name}"><span>W</span></div></details><span id="status-${i}" class="status"></span>${motor?'<small class="small">Revisar pico de arranque</small>':''}</div>`).join('');
 function number(id,min,max,integer=false){const x=Number($(id).value);const ok=$(id).value.trim()!==''&&Number.isFinite(x)&&x>=min&&x<=max&&(!integer||Number.isInteger(x));$(id).setCustomValidity(ok?'':`Ingresa ${integer?'un entero':'un valor'} entre ${min} y ${max}`);return ok?x:null;}
 const radians = Math.PI / 180;
-function daylight() {
-  const minute = Number($('solar-hour').value);
+function daylight(minute=Number($('solar-hour').value), night=state.time==='night') {
   const stops = [[420,8,180], [540,30,700], [720,75,1000], [900,42,760], [1140,5,90]];
   const end = stops.findIndex((stop, i) => i > 0 && minute <= stop[0]);
   const [startMinute, startAltitude, startG] = stops[end - 1];
@@ -16,7 +15,7 @@ function daylight() {
   const altitude = startAltitude + mix * (endAltitude-startAltitude);
   const azimuth = (minute <= 720 ? (720-minute)/300 : (720-minute)/420) * 83 * radians;
   const angle = altitude * radians;
-  return {minute, altitude, g:state.time === 'night' ? 0 : startG + mix*(endG-startG),
+  return {minute, altitude, g:night ? 0 : startG + mix*(endG-startG),
     direction:{x:Math.cos(angle)*Math.sin(azimuth), y:Math.sin(angle), z:Math.cos(angle)*Math.cos(azimuth)}};
 }
 function panelNormal(light) {
@@ -148,6 +147,36 @@ function pan(dx,dy){target.x-=dx*.012*Math.cos(yaw);target.z+=dx*.012*Math.sin(y
 for(const type of ['pointerup','pointercancel','lostpointercapture'])viewport.addEventListener(type,e=>{pointers.delete(e.pointerId);pinch=0;});viewport.addEventListener('contextmenu',e=>e.preventDefault());viewport.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(10,Math.min(40,distance+e.deltaY*.015));cameraUpdate();},{passive:false});
 let cameraAnimation=0;
 function cameraPreset(view){cancelAnimationFrame(cameraAnimation);const start={yaw,pitch,distance,target:{...target}},end={yaw:view==='roof'?.02:.64,pitch:view==='roof'?1.43:.63,distance:view==='roof'?17:25.5,target:{x:0,y:view==='roof'?state.floors*2.8:state.floors*.85,z:0}};const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const duration=reduced?0:550;let began;function frame(now){if(began===undefined)began=now;const t=duration?Math.min(1,(now-began)/duration):1,e=1-Math.pow(1-t,3);yaw=start.yaw+(end.yaw-start.yaw)*e;pitch=start.pitch+(end.pitch-start.pitch)*e;distance=start.distance+(end.distance-start.distance)*e;for(const key of ['x','y','z'])target[key]=start.target[key]+(end.target[key]-start.target[key])*e;cameraUpdate();if(t<1)cameraAnimation=requestAnimationFrame(frame);}cameraAnimation=requestAnimationFrame(frame);} $('reset').onclick=()=>cameraPreset('house');$('view-house').onclick=()=>cameraPreset('house');$('view-roof').onclick=()=>cameraPreset('roof');$('zoom-in').onclick=()=>{distance=Math.max(10,distance-2);cameraUpdate();};$('zoom-out').onclick=()=>{distance=Math.min(40,distance+2);cameraUpdate();};viewport.addEventListener('keydown',e=>{if(e.target!==viewport)return;if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')yaw-=.1;if(e.key==='ArrowRight')yaw+=.1;if(e.key==='ArrowUp')pitch=Math.min(1.35,pitch+.1);if(e.key==='ArrowDown')pitch=Math.max(.12,pitch-.1);if(e.key==='+')distance=Math.max(10,distance-2);if(e.key==='-')distance=Math.min(40,distance+2);cameraUpdate();});
+function drawAnalysis(r, p, n, factor, inverter, demand, light) {
+  $('curve-figure').hidden=!r;
+  $('power-bars').hidden=!r || demand===null;
+  if (!r) {
+    $('curve-note').textContent='Completa la potencia del panel y los ajustes del sistema para ver la curva.';
+    return;
+  }
+  const series=Array.from({length:49},(_,i)=>solar(p,n,daylight(420+15*i,false),factor,inverter).power);
+  const peak=Math.max(...series);
+  const ceiling=Math.max(1,Math.ceil(peak));
+  const coords=series.map((w,i)=>[i*15,114-110*w/ceiling].join(' '));
+  const line='M'+coords.join(' L');
+  $('axis-max').textContent=fmt(ceiling)+' W';
+  $('curve-area').setAttribute('d',line+' L720 114 H0 Z');
+  $('curve-line').setAttribute('d',line);
+  const marker=$('curve-marker');
+  marker.style.display=state.time==='night'?'none':'';
+  marker.setAttribute('x1',light.minute-420);
+  marker.setAttribute('x2',light.minute-420);
+  const caption='Máximo simulado de '+fmt(peak)+' W entre las 07:00 y las 19:00.';
+  $('curve-summary').textContent=caption;
+  $('curve-note').textContent=(state.time==='night'?'Ahora es de noche. La curva muestra el escenario diurno. ':$('hour-readout').textContent+' · '+fmt(r.power)+' W disponibles. ')+caption;
+  if(demand===null) return;
+  for(const [id,value] of [['solar',r.power],['load',demand]]) {
+    const bar=$('bar-'+id);
+    bar.max=Math.max(1,r.power,demand);
+    bar.value=value;
+    $(bar.id+'-text').textContent=fmt(value)+' W';
+  }
+}
 function update(){const index=Number($('panel').value),m=catalog[index],n=number('quantity',1,24,true),inv=number('inverter',1,100000),f=number('factor',1,100);$('base-input').hidden=index!==0;const p=index===0?number('base-watts',.1,1000):m.p;const light=daylight();const r=p!==null&&n!==null&&inv!==null&&f!==null?solar(p,n,light,f/100,inv):null;
 $('specs').textContent=m.p?`${m.p} Wp · Vmp ${m.v} V · Imp ${fmt(m.i)} mA. Referencia de catálogo; modelo descatalogado.`:'Panel base · identidad y potencia nominal pendientes.';
 $('fit').textContent=m.p&&n?`Área neta de módulos: ${fmt(n*m.w*m.h)} m². ${n*m.w*m.h>48*.7?'Supera el 70% de la azotea representada.':'Distribución visual ilustrativa; requiere revisión de separaciones.'}`:'Dimensiones del panel base pendientes. La escala visual es ilustrativa.';
@@ -165,6 +194,7 @@ const notes={optimal:night?'El soporte conserva su última posición.':`Seguimie
   up:'La cara activa queda horizontal hacia el cielo.',down:'La cara activa mira hacia el suelo.'};
 $('orientation-note').textContent=notes[state.orientation];
 let demand=0,valid=true;appliances.forEach((a,i)=>{const w=number('watts-'+i,1,20000);if($('use-'+i).checked){if(w===null)valid=false;else demand+=w;}const enough=r&&w!==null&&r.power>=w;$('status-'+i).textContent=w===null?'Revisa la potencia':!r?'Pendiente de potencia nominal':enough?(a[3]?'Marcha posible · arranque sin validar':'Alcanza por separado'):'No alcanza por separado';});
+drawAnalysis(r,p,n,f/100,inv,valid?demand:null,light);
 $('instant').textContent=r?fmt(r.power)+' W':'Pendiente';$('demand').textContent=valid?fmt(demand)+' W':'Revisar';$('margin').textContent=r&&valid?(r.power-demand>=0?'+':'−')+fmt(Math.abs(r.power-demand))+' W':'—';
 $('balance').textContent=!r?'Confirma los watts de tu panel o elige un modelo de catálogo para explorar cargas.':!valid?'Corrige la potencia de los equipos seleccionados.':night?'Generación solar: 0 W. No se incluye alimentación de red ni batería.':demand===0?'Selecciona aparatos para comparar su consumo simultáneo.':demand<=r.power?'La potencia de marcha alcanza para el conjunto seleccionado. Los motores necesitan validar su pico de arranque.':`Faltan ${fmt(demand-r.power)} W para el conjunto seleccionado; reduce cargas o aumenta la capacidad del sistema.`;
 $('electrical').textContent=r&&m.v?`Referencia por módulo: ${m.v} Vmp · corriente equivalente DC a ese Vmp: ${fmt(r.dc/n/m.v*1000)} mA. No es una predicción del voltaje real. No conectes aparatos directamente al panel.`:'Las mediciones experimentales de abajo son independientes del escenario de la casa.';
